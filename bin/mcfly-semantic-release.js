@@ -17,6 +17,7 @@ const args = require('yargs')
     .option('files', { type: 'array', desc: 'Files and files patterns to change' })
     .option('production', { type: 'boolean', desc: 'Generate production commit message' })
     .option('hotfix', { type: 'boolean', desc: 'Generate a hotfix release' })
+    .option('bumponly', {type: 'boolean', desc: 'Bump package versions and commit without creating a release or pushing to github'})
     .argv;
 
 var files;
@@ -102,21 +103,23 @@ fileHelper.getFiles(args.files)
     })
     .then((msg) => {
         console.log(chalk.yellow('Committing version...'));
-        return gitHelper.commitVersion(msg.nextVersion, args.production, files, args.hotfix)
+        return gitHelper.commitVersion(msg.nextVersion, args.production, files, args.hotfix, args.bumponly)
             .then(() => msg);
     })
     .delay(1000)
     .then((msg) => {
-        console.log(chalk.yellow('Publishing version...'));
-        return retryHelper
-            .retry(function () {
-                return githubHelper.createRelease(msg);
-            })
-            .catch(err => {
-                console.log(chalk.red('An error occurred when publishing the version'));
-                console.log('Your changelog is:\n', msg.changelogContent);
-                throw err;
-            });
+        if (!args.bumponly) {
+            console.log(chalk.yellow('Publishing version...'));
+            return retryHelper
+                .retry(function () {
+                    return githubHelper.createRelease(msg);
+                })
+                .catch(err => {
+                    console.log(chalk.red('An error occurred when publishing the version'));
+                    console.log('Your changelog is:\n', msg.changelogContent);
+                    throw err;
+                });
+        }
     })
     .then((res) => {
         console.log(chalk.green(`Release ${res.name} successfully published!`));
