@@ -108,6 +108,9 @@ fileHelper.getFiles(args.files)
     .delay(1000)
     .then((msg) => {
         console.log(chalk.yellow('Publishing version...'));
+        if (args.hotfix) {
+            msg.nextVersion = `${msg.nextVersion}-hf`;
+        }
         return retryHelper
             .retry(function () {
                 return githubHelper.createRelease(msg);
