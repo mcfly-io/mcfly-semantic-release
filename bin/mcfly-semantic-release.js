@@ -57,7 +57,7 @@ fileHelper.getFiles(args.files)
     .then((username) => {
         msg.username = username;
         if (username) {
-            console.log(`Hello ${chalk.bold(chalk.cyan(username))}, let's publish a new ${args.hotfix ? 'hotfix' : ''} version ${chalk.bold(chalk.yellow(msg.nextVersion))}...`);
+            console.log(`Hello ${chalk.bold(chalk.cyan(username))}, let's publish a new ${args.hotfix ? 'hotfix ' : ''}version ${chalk.bold(chalk.yellow(msg.nextVersion))}...`);
         }
         return inquirer.prompt([{
             type: 'input',
@@ -108,9 +108,6 @@ fileHelper.getFiles(args.files)
     .delay(1000)
     .then((msg) => {
         console.log(chalk.yellow('Publishing version...'));
-        if (args.hotfix) {
-            msg.nextVersion = `${msg.nextVersion}-hf`;
-        }
         return retryHelper
             .retry(function () {
                 return githubHelper.createRelease(msg);
