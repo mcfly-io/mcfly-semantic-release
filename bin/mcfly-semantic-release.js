@@ -14,9 +14,18 @@ const inquirer = require('inquirer');
 const path = require('path');
 const versionHelper = require('../lib/versionHelper');
 const args = require('yargs')
-    .option('files', { type: 'array', desc: 'Files and files patterns to change' })
-    .option('production', { type: 'boolean', desc: 'Generate production commit message' })
-    .option('hotfix', { type: 'boolean', desc: 'Generate a hotfix release' })
+    .option('files', {
+        type: 'array',
+        desc: 'Files and files patterns to change'
+    })
+    .option('production', {
+        type: 'boolean',
+        desc: 'Generate production commit message'
+    })
+    .option('hotfix', {
+        type: 'boolean',
+        desc: 'Generate a hotfix release'
+    })
     .argv;
 
 var files;
@@ -59,22 +68,11 @@ fileHelper.getFiles(args.files)
         if (username) {
             console.log(`Hello ${chalk.bold(chalk.cyan(username))}, let's publish a new ${args.hotfix ? 'hotfix ' : ''}version ${chalk.bold(chalk.yellow(msg.nextVersion))}...`);
         }
-        return inquirer.prompt([{
-            type: 'input',
-            message: 'Please enter your GitHub username',
-            name: 'username',
-            default: username,
-            when: function () {
-                return username.length <= 0;
-            },
-            validate: function (input) {
-                return input !== '';
-            }
-        }, {
+        return inquirer.prompt({
             type: 'password',
-            message: 'Please enter your GitHub password (leave blank to use $GITHUB_TOKEN)',
+            message: 'Press enter to use $GITHUB_TOKEN',
             name: 'password'
-        }]);
+        });
     })
     .then((answers) => {
         console.log(chalk.yellow('Github authentication...'));
@@ -109,7 +107,7 @@ fileHelper.getFiles(args.files)
     .then((msg) => {
         console.log(chalk.yellow('Publishing version...'));
         return retryHelper
-            .retry(function () {
+            .retry(function() {
                 return githubHelper.createRelease(msg);
             })
             .catch(err => {
@@ -118,10 +116,10 @@ fileHelper.getFiles(args.files)
                 throw err;
             });
     })
-    .then((res) => {
-        console.log(chalk.green(`Release ${res.name} successfully published!`));
+    .then(() => {
+        console.log(chalk.green(`Release ${msg.nextVersion} successfully published!`));
     })
-    .catch(function (err) {
+    .catch(function(err) {
         console.log(chalk.red(err));
         return process.exit(1); //eslint-disable-line no-process-exit
     });
